@@ -47,8 +47,7 @@ export default function Step3Documents() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#FBFBFB' }}>
-      <div className="max-w-2xl mx-auto px-6 py-14">
+    <div className="max-w-2xl mx-auto px-6 py-12">
         <h1
           className="text-2xl font-semibold text-center mb-8"
           style={{ color: '#1D1D1F', letterSpacing: '-0.02em' }}
@@ -151,7 +150,6 @@ export default function Step3Documents() {
             </button>
           </div>
         </div>
-      </div>
     </div>
   );
 }

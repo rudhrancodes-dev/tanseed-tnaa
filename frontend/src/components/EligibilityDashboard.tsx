@@ -66,8 +66,7 @@ export default function EligibilityDashboard() {
       : `Reason: ${failReason}`;
 
   return (
-    <div className="min-h-screen" style={{ background: '#FBFBFB' }}>
-      <div className="max-w-3xl mx-auto px-6 py-14">
+    <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Header row */}
         <div className="flex items-center justify-between mb-10">
           <h1
@@ -204,7 +203,6 @@ export default function EligibilityDashboard() {
             </button>
           )}
         </div>
-      </div>
     </div>
   );
 }

@@ -36,8 +36,7 @@ export default function ApplicationDraft() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#FBFBFB' }}>
-      <div className="max-w-3xl mx-auto px-6 py-14">
+    <div className="max-w-3xl mx-auto px-6 py-12">
         <div className="flex items-center justify-between mb-10">
           <h1
             className="text-2xl font-semibold"
@@ -132,7 +131,6 @@ export default function ApplicationDraft() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
