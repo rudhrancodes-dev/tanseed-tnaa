@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+venv/
+.env
+
+# Node
+node_modules/
+frontend/dist/
+frontend/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Pytest
+.pytest_cache/
+
+# ChromaDB
+tanseed_rag/
+
+# Misc
+comment.json
+comment_body.txt
+payload.json
+startup.json
+HIRING_PLAN.md
+NEWS.md
+ROADMAP.md
+TANSEED_CRITERIA.md
+TANSEED_PROTOTYPE.md
+TANSEED_UI_DESIGN.md
+TEAM_STRUCTURE.md
