@@ -8,7 +8,7 @@ interface LandingPageProps {
 
 export default function LandingPage({ onStartApplication }: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: '#FBFBFB' }}>
       <Header />
       <Hero onStart={onStartApplication} />
       <StatusCheck />

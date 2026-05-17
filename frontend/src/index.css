@@ -1,1 +1,63 @@
 @import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+}
+
+*, *::before, *::after {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FBFBFB;
+  color: #1D1D1F;
+  letter-spacing: -0.011em;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Input tactile feedback */
+input[type="text"],
+input[type="number"],
+input[type="url"],
+input[type="email"],
+select,
+textarea {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="text"]:hover:not(:disabled),
+input[type="number"]:hover:not(:disabled),
+input[type="url"]:hover:not(:disabled),
+input[type="email"]:hover:not(:disabled),
+select:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  transform: scale(1.005);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="url"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+  transform: scale(1.005);
+  outline: none;
+}
+
+/* Range input */
+input[type="range"] {
+  accent-color: #4338CA;
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+  accent-color: #4338CA;
+}

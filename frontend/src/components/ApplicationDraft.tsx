@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Loader2 } from 'lucide-react';
+import { Copy, Check, Loader2, ArrowLeft } from 'lucide-react';
 import { useApplication } from '../context/ApplicationContext';
 import { fetchDraft } from '../api';
 import type { ApplicationData } from '../types';
@@ -36,52 +36,99 @@ export default function ApplicationDraft() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-[#1E3A8A]">Application Draft</h1>
+    <div className="min-h-screen" style={{ background: '#FBFBFB' }}>
+      <div className="max-w-3xl mx-auto px-6 py-14">
+        <div className="flex items-center justify-between mb-10">
+          <h1
+            className="text-2xl font-semibold"
+            style={{ color: '#1D1D1F', letterSpacing: '-0.02em' }}
+          >
+            Application Draft
+          </h1>
           <button
             onClick={() => setView('results')}
-            className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 hover:scale-[1.02]"
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid rgba(0,0,0,0.08)',
+              color: '#6E6E73',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            }}
           >
-            ← Back to Results
+            <ArrowLeft size={14} />
+            Back to Results
           </button>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={28} className="animate-spin text-[#1E3A8A]" />
-            <span className="ml-3 text-gray-500">Generating application draft…</span>
+          <div
+            className="flex flex-col items-center justify-center py-32 rounded-3xl"
+            style={{ background: '#FFFFFF', boxShadow: '0 8px 40px rgba(0,0,0,0.06)' }}
+          >
+            <Loader2 size={32} className="animate-spin mb-4" style={{ color: '#4338CA' }} />
+            <span className="text-sm" style={{ color: '#6E6E73' }}>Generating application draft…</span>
           </div>
         ) : (
           <div className="space-y-4">
             {SECTIONS.map(({ title, key }) => (
-              <div key={key} className="bg-white rounded-2xl shadow p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-semibold text-gray-800">{title}</h2>
+              <div
+                key={key}
+                className="rounded-3xl p-8 transition-all duration-150 hover:shadow-lg"
+                style={{
+                  background: '#FFFFFF',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2
+                    className="font-semibold text-base"
+                    style={{ color: '#1D1D1F', letterSpacing: '-0.015em' }}
+                  >
+                    {title}
+                  </h2>
                   <button
                     onClick={() => copySection(key, draft?.[key] ?? '')}
-                    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1E3A8A] transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-150 hover:scale-[1.03]"
+                    style={
+                      copied === key
+                        ? { background: '#ECFDF5', color: '#059669' }
+                        : { background: '#F5F5F7', color: '#6E6E73' }
+                    }
                   >
                     {copied === key ? (
                       <>
-                        <Check size={14} className="text-emerald-500" />
-                        <span className="text-emerald-600">Copied!</span>
+                        <Check size={12} />
+                        Copied
                       </>
                     ) : (
                       <>
-                        <Copy size={14} />
+                        <Copy size={12} />
                         Copy
                       </>
                     )}
                   </button>
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed">{draft?.[key]}</p>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: '#3A3A3C', lineHeight: '1.7' }}
+                >
+                  {draft?.[key]}
+                </p>
               </div>
             ))}
 
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
-              <strong>Note:</strong> This is an AI-generated draft. Review and personalize each section before submission.
+            <div
+              className="rounded-3xl px-8 py-5 flex items-start gap-3 text-sm"
+              style={{
+                background: '#FFFBEB',
+                border: '1px solid rgba(217,119,6,0.15)',
+                color: '#92570F',
+              }}
+            >
+              <span className="text-lg leading-none mt-0.5">⚠</span>
+              <p>
+                <strong>Note:</strong> This is an AI-generated draft. Review and personalize each section before submission.
+              </p>
             </div>
           </div>
         )}

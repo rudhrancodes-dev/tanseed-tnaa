@@ -12,6 +12,18 @@ const DEFAULTS: DocumentsData = {
   additionalDocsUrls: [],
 };
 
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid rgba(0,0,0,0.1)',
+  borderRadius: '14px',
+  padding: '12px 16px',
+  fontSize: '14px',
+  color: '#1D1D1F',
+  background: '#FFFFFF',
+  outline: 'none',
+  transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
+};
+
 export default function Step3Documents() {
   const { data, setData, setView, setResult } = useApplication();
   const [form, setForm] = useState<DocumentsData>(data.documents ?? DEFAULTS);
@@ -27,7 +39,7 @@ export default function Step3Documents() {
       const result = await runEligibilityCheck(fullData as Parameters<typeof runEligibilityCheck>[0]);
       setResult(result);
       setView('results');
-    } catch (err) {
+    } catch {
       setError('Failed to submit. Please try again.');
     } finally {
       setSubmitting(false);
@@ -35,13 +47,29 @@ export default function Step3Documents() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-bold text-[#1E3A8A] text-center mb-6">TANSEED Application</h1>
+    <div className="min-h-screen" style={{ background: '#FBFBFB' }}>
+      <div className="max-w-2xl mx-auto px-6 py-14">
+        <h1
+          className="text-2xl font-semibold text-center mb-8"
+          style={{ color: '#1D1D1F', letterSpacing: '-0.02em' }}
+        >
+          TANSEED Application
+        </h1>
         <Stepper currentStep={3} />
 
-        <div className="bg-white rounded-2xl shadow p-8 space-y-6">
-          <h2 className="text-lg font-semibold text-gray-800">Step 3: Document Upload</h2>
+        <div
+          className="rounded-3xl p-10 space-y-8"
+          style={{
+            background: '#FFFFFF',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.07)',
+          }}
+        >
+          <h2
+            className="text-lg font-semibold"
+            style={{ color: '#1D1D1F', letterSpacing: '-0.015em' }}
+          >
+            Step 3: Document Upload
+          </h2>
 
           <DropzoneField
             label="Pitch Deck (PDF)"
@@ -62,8 +90,11 @@ export default function Step3Documents() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Link size={16} className="inline mr-1" />
+            <label
+              className="block text-sm font-medium mb-2"
+              style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
+            >
+              <Link size={14} className="inline mr-1.5 align-middle" />
               Prototype Video URL
             </label>
             <input
@@ -71,13 +102,24 @@ export default function Step3Documents() {
               placeholder="https://youtube.com/watch?v=..."
               value={form.prototypeVideoUrl}
               onChange={(e) => setForm({ ...form, prototypeVideoUrl: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]"
+              style={inputBase}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(67,56,202,0.18)';
+                e.currentTarget.style.borderColor = '#4338CA';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)';
+              }}
             />
-            <p className="text-gray-400 text-xs mt-1">YouTube, Vimeo, or Drive link</p>
+            <p className="text-xs mt-1.5" style={{ color: '#9898A0' }}>YouTube, Vimeo, or Drive link</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm">
+            <div
+              className="px-5 py-4 rounded-2xl text-sm"
+              style={{ background: '#FFF1F0', border: '1px solid #FFCDD2', color: '#C0392B' }}
+            >
               {error}
             </div>
           )}
@@ -85,16 +127,26 @@ export default function Step3Documents() {
           <div className="flex justify-between pt-2">
             <button
               onClick={() => setView('step2')}
-              className="text-gray-500 hover:text-gray-700 font-medium px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors text-sm"
+              className="px-5 py-3 text-sm font-medium rounded-2xl transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                color: '#3A3A3C',
+                background: '#F5F5F7',
+                border: '1px solid rgba(0,0,0,0.08)',
+              }}
             >
               ← Back
             </button>
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-medium px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white rounded-2xl transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+              style={{
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                boxShadow: '0 4px 20px rgba(5,150,105,0.3)',
+                letterSpacing: '-0.01em',
+              }}
             >
-              {submitting && <Loader2 size={16} className="animate-spin" />}
+              {submitting && <Loader2 size={15} className="animate-spin" />}
               {submitting ? 'Checking Eligibility…' : 'Submit & Check Eligibility'}
             </button>
           </div>
@@ -119,10 +171,26 @@ function DropzoneField({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#1E3A8A] transition-colors cursor-pointer relative">
+      <label
+        className="block text-sm font-medium mb-2"
+        style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
+      >
+        {label}
+      </label>
+      <div
+        className="relative flex flex-col items-center justify-center p-8 rounded-2xl cursor-pointer transition-all duration-200"
+        style={{
+          border: hovered ? '2px dashed #4338CA' : `2px dashed ${value ? '#059669' : 'rgba(0,0,0,0.12)'}`,
+          background: hovered ? 'rgba(67,56,202,0.03)' : value ? 'rgba(5,150,105,0.03)' : '#FBFBFB',
+          transform: hovered ? 'scale(1.005)' : 'scale(1)',
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         <input
           type="file"
           accept={accept}
@@ -132,10 +200,10 @@ function DropzoneField({
             if (file) onChange(file.name);
           }}
         />
-        <div className="flex flex-col items-center gap-2 text-gray-400">
+        <div className="flex flex-col items-center gap-2" style={{ color: value ? '#059669' : '#9898A0' }}>
           {icon}
           {value ? (
-            <span className="text-emerald-600 font-medium text-sm">{value}</span>
+            <span className="text-sm font-medium" style={{ color: '#059669' }}>{value}</span>
           ) : (
             <>
               <span className="text-sm">Drop file here or click to browse</span>

@@ -1,15 +1,28 @@
 import type { ApplicationData, EligibilityResult } from './types';
 
 export async function runEligibilityCheck(data: ApplicationData): Promise<EligibilityResult> {
+  const requestBody = {
+    company_name: data.entity.entityName,
+    sector: data.financials.prioritySector,
+    revenue: data.financials.avgProfit3y,
+    employees: data.entity.employees,
+    description: data.entity.description,
+  };
   try {
-    const res = await fetch('/api/check', {
+    const res = await fetch('http://localhost:8000/eligibility', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestBody),
     });
     if (!res.ok) throw new Error('API error');
-    return res.json();
-  } catch {
+    const apiResult = await res.json();
+    return {
+      status: apiResult.eligible ? 'PASS' : 'FAIL',
+      failReason: !apiResult.eligible ? apiResult.reasons.join(', ') : undefined,
+      criteria: [], // Backend contract doesn't explicitly return per-criterion results like before
+    };
+  } catch (e) {
+    console.error('Eligibility API error:', e);
     // Fallback: derive result locally from form data
     return deriveLocalResult(data);
   }

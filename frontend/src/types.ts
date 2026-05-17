@@ -6,6 +6,8 @@ export interface EntityEligibilityData {
   indianOwnership: number;
   tansimId: string;
   dpiitId: string;
+  employees: number;
+  description: string;
 }
 
 export interface FinancialsData {
