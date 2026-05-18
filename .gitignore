@@ -31,10 +31,16 @@ Thumbs.db
 # Pytest
 .pytest_cache/
 
-# ChromaDB
-tanseed_rag/
+# ChromaDB data (not source)
+tanseed_rag/__pycache__/
+tanseed_rag/data/
+tanseed_rag/vector_db/
 
 # Misc
+ash29.json
+issues.json
+start_backend.py
+start_backend.sh
 comment.json
 comment_body.txt
 payload.json

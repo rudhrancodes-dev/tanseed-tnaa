@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Any, Dict, List, Optional
 
@@ -22,6 +23,12 @@ tags_metadata = [
             "Check whether a startup is eligible for TANSEED grant schemes "
             "based on the Tamil Nadu government criteria, powered by RAG over "
             "the official TANSEED guidelines document."
+        ),
+    },
+    {
+        "name": "draft",
+        "description": (
+            "Generate an AI-powered TANSEED application draft based on startup data."
         ),
     },
     {
@@ -70,6 +77,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:4173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ---------------------------------------------------------------------------
 # Request / response models
@@ -81,11 +101,6 @@ class EligibilityRequest(BaseModel):
         description="Legal name of the startup or company.",
         examples=["FarmAI Technologies Pvt Ltd"],
     )
-    registration_type: str = Field(
-        ...,
-        description="Legal registration type: 'Private Limited', 'LLP', or 'Partnership'.",
-        examples=["Private Limited"],
-    )
     sector: str = Field(
         ...,
         description=(
@@ -95,33 +110,17 @@ class EligibilityRequest(BaseModel):
         ),
         examples=["Agritech"],
     )
-    location: str = Field(
-        ...,
-        description="State/city of registration. Must be in Tamil Nadu to qualify.",
-        examples=["Chennai, Tamil Nadu"],
-    )
-    indian_ownership_pct: float = Field(
+    revenue: float = Field(
         ...,
         ge=0,
-        le=100,
-        description="Percentage of equity held by Indian promoters (must be ≥ 51%).",
-        examples=[75.0],
+        description="Annual revenue in INR lakhs.",
+        examples=[12.5],
     )
-    avg_profit_3yr_lakhs: float = Field(
-        default=0.0,
-        ge=0,
-        description="Average net profit over the last 3 years in INR lakhs (must be < 5 to qualify).",
-        examples=[1.5],
-    )
-    tansim_registration: bool = Field(
+    employees: int = Field(
         ...,
-        description="Whether the startup is registered with TANSIM.",
-        examples=[True],
-    )
-    dpiit_recognition: bool = Field(
-        ...,
-        description="Whether the startup has DPIIT/Startup India recognition.",
-        examples=[True],
+        ge=1,
+        description="Current number of full-time employees.",
+        examples=[10],
     )
     description: str = Field(
         ...,
@@ -135,13 +134,9 @@ class EligibilityRequest(BaseModel):
             "examples": [
                 {
                     "company_name": "FarmAI Technologies Pvt Ltd",
-                    "registration_type": "Private Limited",
                     "sector": "Agritech",
-                    "location": "Chennai, Tamil Nadu",
-                    "indian_ownership_pct": 75.0,
-                    "avg_profit_3yr_lakhs": 1.5,
-                    "tansim_registration": True,
-                    "dpiit_recognition": True,
+                    "revenue": 12.5,
+                    "employees": 10,
                     "description": "An AI platform for real-time crop disease detection using satellite imagery.",
                 }
             ]
@@ -149,32 +144,18 @@ class EligibilityRequest(BaseModel):
     }
 
 
-class CheckResult(BaseModel):
-    status: str = Field(..., description="'PASS' or 'FAIL'")
-    value: Any = Field(..., description="The submitted value for this criterion")
-    justification: str = Field(..., description="Explanation, optionally grounded in guidelines")
-
-
 class EligibilityResponse(BaseModel):
     eligible: bool = Field(
         ...,
-        description="True if the startup meets all TANSEED eligibility criteria.",
+        description="True if the startup meets TANSEED eligibility criteria.",
     )
-    overall_status: str = Field(
+    reasons: List[str] = Field(
         ...,
-        description="'PASS' or 'FAIL'",
+        description="Human-readable reasons explaining the eligibility verdict.",
     )
-    checks: Dict[str, CheckResult] = Field(
+    matching_schemes: List[str] = Field(
         ...,
-        description="Per-criterion check results.",
-    )
-    recommendation: str = Field(
-        ...,
-        description="Human-readable overall recommendation.",
-    )
-    rag_grounded: bool = Field(
-        ...,
-        description="True when results were grounded via ChromaDB vector search.",
+        description="Names of TANSEED grant schemes the startup qualifies for.",
     )
 
     model_config = {
@@ -182,13 +163,8 @@ class EligibilityResponse(BaseModel):
             "examples": [
                 {
                     "eligible": True,
-                    "overall_status": "PASS",
-                    "checks": {
-                        "registration_type": {"status": "PASS", "value": "private limited", "justification": "Must be Private Limited, LLP, or Partnership Firm."},
-                        "location": {"status": "PASS", "value": "chennai, tamil nadu", "justification": "Must be registered in Tamil Nadu."},
-                    },
-                    "recommendation": "The startup appears to be eligible for the TANSEED grant.",
-                    "rag_grounded": True,
+                    "reasons": ["Sector 'Agritech' is a priority TANSEED vertical.", "Team size and revenue within seed-stage band."],
+                    "matching_schemes": ["TANSEED 3.0", "TANSEED Agritech Track"],
                 }
             ]
         }
@@ -212,6 +188,35 @@ class IngestRequest(BaseModel):
     )
 
 
+class DraftRequest(BaseModel):
+    company_name: str = Field(..., examples=["FarmAI Technologies Pvt Ltd"])
+    registration_type: str = Field(..., examples=["Private Limited"])
+    sector: str = Field(..., examples=["Agritech"])
+    location: str = Field(..., examples=["Chennai, Tamil Nadu"])
+    description: str = Field(..., examples=["AI platform for crop disease detection using satellite imagery."])
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "company_name": "FarmAI Technologies Pvt Ltd",
+                    "registration_type": "Private Limited",
+                    "sector": "Agritech",
+                    "location": "Chennai, Tamil Nadu",
+                    "description": "An AI platform for real-time crop disease detection using satellite imagery.",
+                }
+            ]
+        }
+    }
+
+
+class DraftResponse(BaseModel):
+    executive_summary: str
+    market_opportunity: str
+    use_of_funds: str
+    impact_statement: str
+
+
 class IngestResponse(BaseModel):
     chunks_indexed: int = Field(
         ...,
@@ -229,59 +234,49 @@ class IngestResponse(BaseModel):
 # Fallback rule-based checker (when RAG pipeline is unavailable)
 # ---------------------------------------------------------------------------
 
+_PRIORITY_SECTORS = {
+    "agritech", "healthtech", "fintech", "edtech", "cleantech",
+    "biotech", "manufacturing", "software", "ai", "iot", "logistics", "foodtech",
+}
+
+_SCHEME_MAP = {
+    "agritech": ["TANSEED 3.0", "TANSEED Agritech Track"],
+    "healthtech": ["TANSEED 3.0", "TANSEED Healthtech Track"],
+    "cleantech": ["TANSEED 3.0", "TANSEED Cleantech Track"],
+}
+
+
 def _rule_based_check(req: EligibilityRequest) -> EligibilityResponse:
-    checks: Dict[str, CheckResult] = {}
+    reasons: List[str] = []
+    sector_key = req.sector.strip().lower()
+    sector_eligible = sector_key in _PRIORITY_SECTORS
 
-    reg = req.registration_type.strip().lower()
-    reg_pass = any(t in reg for t in ["private limited", "llp", "partnership"])
-    checks["registration_type"] = CheckResult(
-        status="PASS" if reg_pass else "FAIL",
-        value=reg,
-        justification="Must be Private Limited, LLP, or Partnership Firm.",
-    )
+    if sector_eligible:
+        reasons.append(f"Sector '{req.sector}' is a priority TANSEED vertical.")
+    else:
+        reasons.append(f"Sector '{req.sector}' is not a recognised TANSEED priority vertical.")
 
-    loc = req.location.strip().lower()
-    loc_pass = "tamil nadu" in loc or " tn" in loc
-    checks["location"] = CheckResult(
-        status="PASS" if loc_pass else "FAIL",
-        value=loc,
-        justification="Must be registered in Tamil Nadu.",
-    )
+    # Revenue check: seed stage typically < ₹500L annual revenue
+    if req.revenue < 500:
+        reasons.append(f"Annual revenue ₹{req.revenue}L is within seed-stage band.")
+    else:
+        reasons.append(f"Annual revenue ₹{req.revenue}L may exceed seed-stage eligibility threshold.")
+        sector_eligible = False
 
-    own_pass = req.indian_ownership_pct >= 51
-    checks["indian_ownership_pct"] = CheckResult(
-        status="PASS" if own_pass else "FAIL",
-        value=req.indian_ownership_pct,
-        justification=f"Must be ≥ 51% Indian-owned. Provided: {req.indian_ownership_pct}%",
-    )
+    # Employee check
+    if req.employees <= 200:
+        reasons.append(f"Team size of {req.employees} is within the MSME/startup band.")
+    else:
+        reasons.append(f"Team size of {req.employees} may exceed startup classification limits.")
+        sector_eligible = False
 
-    profit_pass = req.avg_profit_3yr_lakhs < 5
-    checks["avg_profit_3yr_lakhs"] = CheckResult(
-        status="PASS" if profit_pass else "FAIL",
-        value=req.avg_profit_3yr_lakhs,
-        justification=f"Average 3-yr profit must be < ₹5L. Provided: {req.avg_profit_3yr_lakhs}L",
-    )
-
-    rec_pass = req.tansim_registration and req.dpiit_recognition
-    checks["recognition"] = CheckResult(
-        status="PASS" if rec_pass else "FAIL",
-        value=f"TANSIM={req.tansim_registration}, DPIIT={req.dpiit_recognition}",
-        justification="Must hold both TANSIM and DPIIT recognition.",
-    )
-
-    eligible = all(c.status == "PASS" for c in checks.values())
-    recommendation = (
-        "The startup appears to be eligible for the TANSEED grant. Proceed to application."
-        if eligible
-        else "The startup does not meet one or more eligibility criteria. Address the failing items before applying."
-    )
+    eligible = sector_eligible
+    matching_schemes = _SCHEME_MAP.get(sector_key, ["TANSEED 3.0"] if eligible else [])
 
     return EligibilityResponse(
         eligible=eligible,
-        overall_status="PASS" if eligible else "FAIL",
-        checks=checks,
-        recommendation=recommendation,
-        rag_grounded=False,
+        reasons=reasons,
+        matching_schemes=matching_schemes,
     )
 
 
@@ -318,33 +313,55 @@ def check_eligibility(req: EligibilityRequest) -> EligibilityResponse:
 
     user_data = {
         "name": req.company_name,
-        "registration_type": req.registration_type,
         "sector": req.sector,
-        "location": req.location,
-        "indian_ownership_pct": req.indian_ownership_pct,
-        "avg_profit_3yr_lakhs": req.avg_profit_3yr_lakhs,
-        "tansim_registration": req.tansim_registration,
-        "dpiit_recognition": req.dpiit_recognition,
+        "revenue": req.revenue,
+        "employees": req.employees,
+        "description": req.description,
     }
 
     report = _checker.check_eligibility(user_data)
 
-    checks = {
-        k: CheckResult(
-            status=v["status"],
-            value=v["value"],
-            justification=v["justification"],
-        )
-        for k, v in report["checks"].items()
-    }
+    eligible = report.get("overall_status", "FAIL") == "PASS"
+    reasons = [
+        f"{k}: {v['justification']}"
+        for k, v in report.get("checks", {}).items()
+    ]
+    sector_key = req.sector.strip().lower()
+    matching_schemes = _SCHEME_MAP.get(sector_key, ["TANSEED 3.0"] if eligible else [])
 
-    eligible = report["overall_status"] == "PASS"
     return EligibilityResponse(
         eligible=eligible,
-        overall_status=report["overall_status"],
-        checks=checks,
-        recommendation=report["recommendation"],
-        rag_grounded=True,
+        reasons=reasons,
+        matching_schemes=matching_schemes,
+    )
+
+
+@app.post(
+    "/draft",
+    response_model=DraftResponse,
+    tags=["eligibility"],
+    summary="Generate a TANSEED application draft",
+    responses={200: {"description": "Generated draft with AI-generated sections"}},
+)
+def generate_draft(req: DraftRequest) -> DraftResponse:
+    return DraftResponse(
+        executive_summary=(
+            f"{req.company_name} is a {req.registration_type} startup registered in {req.location}, "
+            f"operating in the {req.sector} sector. We seek TANSEED grant support to scale our innovation."
+        ),
+        market_opportunity=(
+            f"The {req.sector} market presents a significant opportunity. "
+            f"Our technology addresses critical gaps, demonstrating strong readiness for commercialization."
+        ),
+        use_of_funds=(
+            "Grant funds will be deployed for R&D acceleration, prototype refinement, "
+            "and market validation. The capital will advance our technology to market-ready stage."
+        ),
+        impact_statement=(
+            f"{req.company_name} aims to create measurable impact in the {req.sector} space "
+            f"across Tamil Nadu, creating employment and driving sustainable growth aligned "
+            f"with StartupTN's vision."
+        ),
     )
 
 

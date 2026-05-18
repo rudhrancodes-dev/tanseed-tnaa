@@ -4,7 +4,7 @@ export async function runEligibilityCheck(data: ApplicationData): Promise<Eligib
   const requestBody = {
     company_name: data.entity.entityName,
     sector: data.financials.prioritySector,
-    revenue: data.financials.avgProfit3y,
+    revenue: data.financials.avgProfit3y / 100000,
     employees: data.entity.employees,
     description: data.entity.description,
   };
@@ -16,27 +16,46 @@ export async function runEligibilityCheck(data: ApplicationData): Promise<Eligib
     });
     if (!res.ok) throw new Error('API error');
     const apiResult = await res.json();
+    const criteria = (apiResult.reasons || []).map((r: string) => ({
+      criterion: r.split(':')[0] || r.split(' ')[0] || 'Info',
+      status: apiResult.eligible ? 'PASS' as const : 'INFO' as const,
+      justification: r,
+    }));
     return {
       status: apiResult.eligible ? 'PASS' : 'FAIL',
-      failReason: !apiResult.eligible ? apiResult.reasons.join(', ') : undefined,
-      criteria: [], // Backend contract doesn't explicitly return per-criterion results like before
+      ticketSize: apiResult.eligible && apiResult.matching_schemes?.length
+        ? apiResult.matching_schemes.join(', ')
+        : undefined,
+      failReason: !apiResult.eligible ? apiResult.reasons?.join('; ') : undefined,
+      criteria,
     };
   } catch (e) {
     console.error('Eligibility API error:', e);
-    // Fallback: derive result locally from form data
     return deriveLocalResult(data);
   }
 }
 
 export async function fetchDraft(data: ApplicationData) {
   try {
-    const res = await fetch('/api/draft', {
+    const res = await fetch('http://localhost:8000/draft', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        company_name: data.entity.entityName,
+        registration_type: data.entity.registrationType,
+        sector: data.financials.prioritySector,
+        location: data.entity.location,
+        description: data.entity.description,
+      }),
     });
     if (!res.ok) throw new Error('API error');
-    return res.json();
+    const raw: Record<string, string> = await res.json();
+    return {
+      executiveSummary: raw.executive_summary,
+      marketOpportunity: raw.market_opportunity,
+      useOfFunds: raw.use_of_funds,
+      impactStatement: raw.impact_statement,
+    };
   } catch {
     return generateLocalDraft(data);
   }

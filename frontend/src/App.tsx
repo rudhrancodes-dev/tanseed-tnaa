@@ -6,12 +6,14 @@ import Step2Financials from './components/Step2Financials';
 import Step3Documents from './components/Step3Documents';
 import EligibilityDashboard from './components/EligibilityDashboard';
 import ApplicationDraft from './components/ApplicationDraft';
+import Footer from './components/Footer';
 
 function StepLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#F5F5F7]">
+    <div className="min-h-screen bg-[var(--page-bg)]">
       <Header />
       {children}
+      <Footer />
     </div>
   );
 }
