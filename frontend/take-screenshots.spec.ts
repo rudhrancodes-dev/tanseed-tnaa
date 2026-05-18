@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Take Screenshots', () => {
   test('should navigate through the application and take screenshots', async ({ page }) => {
-    await page.goto('http://localhost:5174/');
+    await page.goto('http://127.0.0.1:5174/');
     await page.screenshot({ path: 'screenshots/01-landing-page.png', fullPage: true });
 
     await page.getByRole('button', { name: 'Start New Application' }).click();

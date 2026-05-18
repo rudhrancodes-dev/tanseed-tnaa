@@ -26,6 +26,10 @@ An intelligent application platform for Tamil Nadu's **TANSEED** (Tamil Nadu Sta
 |:---:|:---:|
 | ![Results](screenshots/05-eligibility-results.png) | ![Draft](screenshots/06-application-draft.png) |
 
+| Draft Payment Gate |
+|:---:|
+| ![Draft Gate](screenshots/ash-48-draft-gate.png) |
+
 ## Features
 
 - **Multi-step application flow** — Guided intake from entity details through document upload with real-time validation
