@@ -1,4 +1,4 @@
-"""TANAAI FastAPI backend — /health, /eligibility, /ingest endpoints."""
+"""TANAAI FastAPI backend — /health, /eligibility, /ingest, /payments endpoints."""
 
 import sys
 import os
@@ -11,6 +11,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Any, Dict, List, Optional
+
+from backend.payments import router as payments_router, init_db
 
 tags_metadata = [
     {
@@ -38,6 +40,14 @@ tags_metadata = [
             "RAG vector store. Restricted to backend operators."
         ),
     },
+    {
+        "name": "payments",
+        "description": (
+            "Razorpay payment flow: create Razorpay orders, verify client-side "
+            "payment signatures, handle Razorpay webhooks, and query payment "
+            "status by session. Gates the Application Draft feature."
+        ),
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -51,6 +61,8 @@ _checker = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _pipeline, _checker
+    init_db()
+    print("[STARTUP] Payments database initialized.")
     try:
         from tanseed_rag.pipeline import TanseedPipeline
         from tanseed_rag.eligibility import EligibilityChecker
@@ -76,6 +88,8 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     lifespan=lifespan,
 )
+
+app.include_router(payments_router)
 
 app.add_middleware(
     CORSMiddleware,
