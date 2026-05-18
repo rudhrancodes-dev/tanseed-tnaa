@@ -30,6 +30,7 @@ const mockAppData = {
 describe('deriveLocalResult', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
   })
 
   it('returns PASS for valid TANSEED-eligible data', async () => {
@@ -69,5 +70,69 @@ describe('deriveLocalResult', () => {
     }
     const result = await runEligibilityCheck(reviewData)
     expect(result.status).toBe('REVIEW')
+  })
+})
+
+describe('payment api wrappers', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('posts a Razorpay order request with the draft unlock metadata', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        keyId: 'rzp_test_123',
+        orderId: 'order_123',
+        amount: 199900,
+        currency: 'INR',
+        applicationReference: 'draft-test-123',
+      }),
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { createDraftPaymentOrder } = await import('../api')
+    const result = await createDraftPaymentOrder({
+      applicationReference: 'draft-test-123',
+      companyName: 'Test Startup',
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8000/payments/razorpay/order',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    )
+    expect(result.orderId).toBe('order_123')
+  })
+
+  it('posts the Razorpay verification payload', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        paid: true,
+        applicationReference: 'draft-test-123',
+        paymentId: 'pay_123',
+      }),
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { verifyDraftPayment } = await import('../api')
+    const result = await verifyDraftPayment({
+      applicationReference: 'draft-test-123',
+      orderId: 'order_123',
+      paymentId: 'pay_123',
+      signature: 'sig_123',
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8000/payments/razorpay/verify',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    )
+    expect(result.paid).toBe(true)
   })
 })

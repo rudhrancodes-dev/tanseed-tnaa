@@ -2,11 +2,13 @@ import type { ReactNode } from 'react';
 
 export function Field({
   label,
+  htmlFor,
   hint,
   error,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   hint?: string;
   error?: string;
   children: ReactNode;
@@ -14,7 +16,9 @@ export function Field({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <label className="text-sm font-semibold text-slate-900">{label}</label>
+        <label htmlFor={htmlFor} className="text-sm font-semibold text-slate-900">
+          {label}
+        </label>
         {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
       </div>
       {children}

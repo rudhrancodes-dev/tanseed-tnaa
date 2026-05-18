@@ -1,5 +1,36 @@
 import type { ApplicationData, EligibilityResult } from './types';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+
+export const DRAFT_UNLOCK_AMOUNT = Number(import.meta.env.VITE_DRAFT_UNLOCK_AMOUNT ?? 199900);
+export const DRAFT_UNLOCK_CURRENCY = import.meta.env.VITE_DRAFT_UNLOCK_CURRENCY ?? 'INR';
+
+export interface DraftPaymentOrderRequest {
+  applicationReference: string;
+  companyName: string;
+}
+
+export interface DraftPaymentOrderResponse {
+  keyId: string;
+  orderId: string;
+  amount: number;
+  currency: string;
+  applicationReference: string;
+}
+
+export interface DraftPaymentVerificationRequest {
+  applicationReference: string;
+  orderId: string;
+  paymentId: string;
+  signature: string;
+}
+
+export interface DraftPaymentVerificationResponse {
+  paid: boolean;
+  applicationReference: string;
+  paymentId: string;
+}
+
 export async function runEligibilityCheck(data: ApplicationData): Promise<EligibilityResult> {
   const requestBody = {
     company_name: data.entity.entityName,
@@ -10,6 +41,7 @@ export async function runEligibilityCheck(data: ApplicationData): Promise<Eligib
   };
   try {
     const res = await fetch('http://localhost:8000/eligibility', {
+      // The current frontend stays compatible with the backend RAG service contract.
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
@@ -59,6 +91,39 @@ export async function fetchDraft(data: ApplicationData) {
   } catch {
     return generateLocalDraft(data);
   }
+}
+
+export async function createDraftPaymentOrder(payload: DraftPaymentOrderRequest): Promise<DraftPaymentOrderResponse> {
+  const res = await fetch(`${API_BASE_URL}/payments/razorpay/order`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...payload,
+      amount: DRAFT_UNLOCK_AMOUNT,
+      currency: DRAFT_UNLOCK_CURRENCY,
+      purpose: 'application_draft',
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error('Unable to start Razorpay checkout. Confirm the payment API is available.');
+  }
+
+  return res.json();
+}
+
+export async function verifyDraftPayment(payload: DraftPaymentVerificationRequest): Promise<DraftPaymentVerificationResponse> {
+  const res = await fetch(`${API_BASE_URL}/payments/razorpay/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error('Payment verification failed. Please contact support if you were charged.');
+  }
+
+  return res.json();
 }
 
 function deriveLocalResult(data: ApplicationData): EligibilityResult {

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import Stepper from './Stepper';
+import { BarChart3, CircleAlert, Sparkles } from 'lucide-react';
+import ApplicationShell from './ApplicationShell';
+import { Field, errorInputClassName, inputClassName } from './FormPrimitives';
 import { useApplication } from '../context/ApplicationContext';
 import type { FinancialsData } from '../types';
 
@@ -12,18 +14,6 @@ const DEFAULTS: FinancialsData = {
 };
 
 const SECTORS = ['Deep Tech/AI', 'Climate', 'Women-led', 'Rural', 'General'];
-
-const inputBase: React.CSSProperties = {
-  width: '100%',
-  border: '1px solid rgba(0,0,0,0.1)',
-  borderRadius: '14px',
-  padding: '12px 16px',
-  fontSize: '14px',
-  color: '#1D1D1F',
-  background: '#FFFFFF',
-  outline: 'none',
-  transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
-};
 
 export default function Step2Financials() {
   const { data, setData, setView } = useApplication();
@@ -46,225 +36,161 @@ export default function Step2Financials() {
     setView('step3');
   }
 
-  function focusStyle(e: React.FocusEvent<HTMLInputElement>) {
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(67,56,202,0.18)';
-    e.currentTarget.style.borderColor = '#4338CA';
-  }
-  function blurStyle(e: React.FocusEvent<HTMLInputElement>, hasError: boolean) {
-    e.currentTarget.style.boxShadow = 'none';
-    e.currentTarget.style.borderColor = hasError ? '#FF3B30' : 'rgba(0,0,0,0.1)';
-  }
-
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12">
-        <h1
-          className="text-2xl font-semibold text-center mb-8"
-          style={{ color: '#1D1D1F', letterSpacing: '-0.02em' }}
-        >
-          TANSEED Application
-        </h1>
-        <Stepper currentStep={2} />
-
-        <div
-          className="rounded-3xl p-10 space-y-8"
-          style={{
-            background: '#FFFFFF',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.07)',
-          }}
-        >
-          <h2
-            className="text-lg font-semibold"
-            style={{ color: '#1D1D1F', letterSpacing: '-0.015em' }}
-          >
-            Step 2: Financials & Impact
-          </h2>
-
-          <div>
-            <label
-              className="block text-sm font-medium mb-2"
-              style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
-            >
-              Average Profit (3 years, INR)
-            </label>
-            <input
-              type="number"
-              value={form.avgProfit3y}
-              onChange={(e) => setForm({ ...form, avgProfit3y: Number(e.target.value) })}
-              style={errors.avgProfit3y ? { ...inputBase, borderColor: '#FF3B30' } : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.avgProfit3y)}
-            />
-            {errors.avgProfit3y ? (
-              <p className="text-xs mt-1.5" style={{ color: '#FF3B30' }}>{errors.avgProfit3y}</p>
-            ) : (
-              <p className="text-xs mt-1.5" style={{ color: '#9898A0' }}>Must be below ₹5,00,000 to qualify.</p>
-            )}
+    <ApplicationShell
+      title="Financials and impact signals"
+      description="This step checks core threshold rules, sector alignment, technology maturity, and the declarations required before a draft can be generated."
+      currentStep={2}
+      aside={
+        <div className="space-y-5">
+          <div className="rounded-[24px] bg-slate-950 p-5 text-white">
+            <div className="flex items-center gap-3">
+              <BarChart3 size={20} className="text-emerald-300" />
+              <p className="text-sm font-semibold">Funding fit indicators</p>
+            </div>
+            <ul className="mt-4 space-y-3 text-sm text-slate-300">
+              <li>Average profit must remain below ₹5,00,000.</li>
+              <li>TRL 4 and above improves review weightage.</li>
+              <li>Priority sectors help shape the recommended ticket narrative.</li>
+            </ul>
           </div>
+          <div className="rounded-[24px] border border-[var(--line)] bg-white p-5">
+            <div className="flex items-start gap-3">
+              <Sparkles size={18} className="mt-0.5 text-[var(--primary-700)]" />
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Reviewer tip</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Choose the sector your reviewers would recognize first. Use the startup description to explain any nuance later in the draft.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-8">
+        <Field
+          label="Average Profit (3 years, INR)"
+          htmlFor="avgProfit3y"
+          hint="Threshold: below ₹5,00,000"
+          error={errors.avgProfit3y}
+        >
+          <input
+            id="avgProfit3y"
+            type="number"
+            value={form.avgProfit3y}
+            onChange={(e) => setForm({ ...form, avgProfit3y: Number(e.target.value) })}
+            className={errors.avgProfit3y ? errorInputClassName : inputClassName}
+          />
+        </Field>
 
-          <div>
-            <label
-              className="block text-sm font-medium mb-3"
-              style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
-            >
-              Priority Sector *
-            </label>
-            <div className="grid grid-cols-2 gap-2.5">
-              {SECTORS.map((s) => (
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-semibold text-slate-900">Priority Sector</legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {SECTORS.map((sector) => {
+              const checked = form.prioritySector === sector;
+              return (
                 <label
-                  key={s}
-                  className="flex items-center gap-2.5 px-4 py-3 rounded-2xl cursor-pointer text-sm transition-all duration-150 hover:scale-[1.01]"
-                  style={
-                    form.prioritySector === s
-                      ? {
-                          background: '#F0EFFE',
-                          border: '1.5px solid #4338CA',
-                          color: '#4338CA',
-                          fontWeight: 600,
-                          boxShadow: '0 2px 10px rgba(67,56,202,0.12)',
-                        }
-                      : {
-                          background: '#FFFFFF',
-                          border: '1px solid rgba(0,0,0,0.08)',
-                          color: '#6E6E73',
-                        }
-                  }
+                  key={sector}
+                  className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-4 text-sm transition ${
+                    checked
+                      ? 'border-[var(--primary-500)] bg-[rgba(30,58,138,0.05)] shadow-[0_10px_24px_rgba(30,58,138,0.08)]'
+                      : 'border-[var(--line)] bg-white hover:border-[var(--line-strong)]'
+                  }`}
                 >
                   <input
                     type="radio"
                     name="sector"
-                    value={s}
-                    checked={form.prioritySector === s}
-                    onChange={() => setForm({ ...form, prioritySector: s })}
-                    className="sr-only"
+                    value={sector}
+                    checked={checked}
+                    onChange={() => setForm({ ...form, prioritySector: sector })}
+                    className="mt-1 h-4 w-4"
                   />
-                  <span
-                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                    style={
-                      form.prioritySector === s
-                        ? { borderColor: '#4338CA', background: '#4338CA' }
-                        : { borderColor: '#C7C7CC' }
-                    }
-                  >
-                    {form.prioritySector === s && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
-                  </span>
-                  {s}
-                </label>
-              ))}
-            </div>
-            {errors.prioritySector && (
-              <p className="text-xs mt-1.5" style={{ color: '#FF3B30' }}>{errors.prioritySector}</p>
-            )}
-          </div>
-
-          <div>
-            <label
-              className="block text-sm font-medium mb-3"
-              style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
-            >
-              TRL Level:{' '}
-              <span style={{ color: '#4338CA', fontWeight: 700 }}>{form.trlLevel}</span>
-              {form.trlLevel >= 4 && (
-                <span
-                  className="ml-2 text-xs font-normal px-2 py-0.5 rounded-full"
-                  style={{ background: '#ECFDF5', color: '#059669' }}
-                >
-                  High weightage
-                </span>
-              )}
-            </label>
-            <div
-              className="px-4 py-4 rounded-2xl"
-              style={{ background: '#FBFBFB', border: '1px solid rgba(0,0,0,0.06)' }}
-            >
-              <input
-                type="range"
-                min={1}
-                max={9}
-                value={form.trlLevel}
-                onChange={(e) => setForm({ ...form, trlLevel: Number(e.target.value) })}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs mt-2" style={{ color: '#9898A0' }}>
-                <span>1 — Idea</span>
-                <span>5 — Prototype</span>
-                <span>9 — Market</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="rounded-2xl p-6 space-y-4"
-            style={{ background: '#FBFBFB', border: '1px solid rgba(0,0,0,0.06)' }}
-          >
-            <p
-              className="text-sm font-semibold"
-              style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
-            >
-              Declarations *
-            </p>
-            {([
-              ['noDues', 'We have no outstanding government dues or legal proceedings.'],
-              ['notBlacklisted', 'We are not blacklisted by any government body or financial institution.'],
-            ] as [keyof FinancialsData, string][]).map(([key, label]) => (
-              <label key={key} className="flex items-start gap-3 cursor-pointer group">
-                <div className="mt-0.5 flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(form[key])}
-                    onChange={(e) => setForm({ ...form, [key]: e.target.checked })}
-                    className="sr-only"
-                  />
-                  <div
-                    className="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150"
-                    style={
-                      Boolean(form[key])
-                        ? { background: '#4338CA', borderColor: '#4338CA' }
-                        : { background: '#FFFFFF', borderColor: errors[key] ? '#FF3B30' : '#C7C7CC' }
-                    }
-                    onClick={() => setForm({ ...form, [key]: !Boolean(form[key]) })}
-                  >
-                    {Boolean(form[key]) && (
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
+                  <div>
+                    <p className="font-semibold text-slate-900">{sector}</p>
+                    <p className="mt-1 leading-6 text-slate-600">
+                      {sector === 'Deep Tech/AI' || sector === 'Climate'
+                        ? 'High strategic fit with technology-led review framing.'
+                        : sector === 'Women-led'
+                        ? 'Use when founding control or leadership story is central.'
+                        : sector === 'Rural'
+                        ? 'Use when reach, adoption, or market creation is outside major metros.'
+                        : 'Use when no priority bucket is a precise fit.'}
+                    </p>
                   </div>
-                </div>
-                <span className="text-sm leading-snug" style={{ color: '#3A3A3C' }}>{label}</span>
-              </label>
-            ))}
-            {(errors.noDues || errors.notBlacklisted) && (
-              <p className="text-xs" style={{ color: '#FF3B30' }}>Both declarations are required</p>
-            )}
+                </label>
+              );
+            })}
           </div>
+          {errors.prioritySector ? <p className="text-sm text-[var(--danger-600)]">{errors.prioritySector}</p> : null}
+        </fieldset>
 
-          <div className="flex justify-between pt-2">
-            <button
-              onClick={() => setView('step1')}
-              className="px-5 py-3 text-sm font-medium rounded-2xl transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                color: '#3A3A3C',
-                background: '#F5F5F7',
-                border: '1px solid rgba(0,0,0,0.08)',
-              }}
-            >
-              ← Back
-            </button>
-            <button
-              onClick={handleNext}
-              className="inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold text-white rounded-2xl transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                background: 'linear-gradient(135deg, #4338CA 0%, #3730A3 100%)',
-                boxShadow: '0 4px 20px rgba(67,56,202,0.3)',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Next: Documents →
-            </button>
+        <div className="rounded-[24px] border border-[var(--line)] bg-[var(--surface-muted)] p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Technology Readiness Level</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">TRL scores of 4 or above usually read as stronger commercialization readiness.</p>
+            </div>
+            <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[var(--primary-700)] shadow-sm">
+              TRL {form.trlLevel}
+            </div>
+          </div>
+          <input
+            aria-label="TRL Level"
+            type="range"
+            min={1}
+            max={9}
+            value={form.trlLevel}
+            onChange={(e) => setForm({ ...form, trlLevel: Number(e.target.value) })}
+            className="mt-5 w-full"
+          />
+          <div className="mt-2 flex justify-between text-xs text-slate-500">
+            <span>1: Concept</span>
+            <span>5: Prototype</span>
+            <span>9: Deployed</span>
           </div>
         </div>
-    </div>
+
+        <fieldset className="space-y-4 rounded-[24px] border border-[var(--line)] bg-white p-5">
+          <legend className="px-2 text-sm font-semibold text-slate-900">Declarations</legend>
+          {([
+            ['noDues', 'We have no outstanding government dues or material legal proceedings.'],
+            ['notBlacklisted', 'We are not blacklisted by any government body or financial institution.'],
+          ] as [keyof FinancialsData, string][]).map(([key, label]) => (
+            <label key={key} className="flex items-start gap-3 rounded-2xl border border-[var(--line)] px-4 py-4">
+              <input
+                type="checkbox"
+                checked={Boolean(form[key])}
+                onChange={(e) => setForm({ ...form, [key]: e.target.checked })}
+                className="mt-1 h-4 w-4"
+              />
+              <span className="text-sm leading-6 text-slate-700">{label}</span>
+            </label>
+          ))}
+          {errors.noDues || errors.notBlacklisted ? (
+            <div className="flex items-center gap-2 text-sm text-[var(--danger-600)]">
+              <CircleAlert size={16} />
+              <span>Both declarations are required.</span>
+            </div>
+          ) : null}
+        </fieldset>
+
+        <div className="flex justify-between gap-3">
+          <button
+            onClick={() => setView('step1')}
+            className="rounded-2xl border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[var(--line-strong)]"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleNext}
+            className="inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#1E3A8A,#325EC7)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(30,58,138,0.22)] transition hover:-translate-y-0.5"
+          >
+            Continue to documents
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </ApplicationShell>
   );
 }

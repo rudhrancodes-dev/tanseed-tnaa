@@ -52,3 +52,13 @@ export interface ApplicationDraft {
   useOfFunds: string;
   impactStatement: string;
 }
+
+export interface DraftPaymentState {
+  status: 'idle' | 'creating_order' | 'checkout_open' | 'verifying' | 'paid' | 'failed';
+  applicationReference: string | null;
+  orderId: string | null;
+  paymentId: string | null;
+  amount: number;
+  currency: string;
+  error: string | null;
+}

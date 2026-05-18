@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import Stepper from './Stepper';
+import { AlertTriangle, BadgeCheck, Building2, MapPin, ShieldCheck } from 'lucide-react';
+import ApplicationShell from './ApplicationShell';
+import { Field, errorInputClassName, inputClassName } from './FormPrimitives';
 import { useApplication } from '../context/ApplicationContext';
 import type { EntityEligibilityData } from '../types';
 
@@ -15,50 +16,6 @@ const DEFAULTS: EntityEligibilityData = {
   employees: 1,
   description: '',
 };
-
-const inputBase: React.CSSProperties = {
-  width: '100%',
-  border: '1px solid rgba(0,0,0,0.1)',
-  borderRadius: '14px',
-  padding: '12px 16px',
-  fontSize: '14px',
-  color: '#1D1D1F',
-  background: '#FFFFFF',
-  outline: 'none',
-  transition: 'box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease',
-};
-
-const inputError: React.CSSProperties = {
-  ...inputBase,
-  borderColor: '#FF3B30',
-};
-
-function FormInput({
-  label,
-  children,
-  error,
-}: {
-  label: string;
-  children: React.ReactNode;
-  error?: string;
-}) {
-  return (
-    <div>
-      <label
-        className="block text-sm font-medium mb-2"
-        style={{ color: '#1D1D1F', letterSpacing: '-0.01em' }}
-      >
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p className="text-xs mt-1.5" style={{ color: '#FF3B30' }}>
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
 
 export default function Step1EntityEligibility() {
   const { data, setData, setView } = useApplication();
@@ -85,179 +42,194 @@ export default function Step1EntityEligibility() {
     setView('step2');
   }
 
-  function focusStyle(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(67,56,202,0.18)';
-    e.currentTarget.style.borderColor = '#4338CA';
-  }
-  function blurStyle(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, hasError: boolean) {
-    e.currentTarget.style.boxShadow = 'none';
-    e.currentTarget.style.borderColor = hasError ? '#FF3B30' : 'rgba(0,0,0,0.1)';
-  }
-
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12">
-        <h1
-          className="text-2xl font-semibold text-center mb-8"
-          style={{ color: '#1D1D1F', letterSpacing: '-0.02em' }}
-        >
-          TANSEED Application
-        </h1>
-        <Stepper currentStep={1} />
-
-        <div
-          className="rounded-3xl p-10 space-y-6"
-          style={{
-            background: '#FFFFFF',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.07)',
-          }}
-        >
-          <h2
-            className="text-lg font-semibold"
-            style={{ color: '#1D1D1F', letterSpacing: '-0.015em' }}
-          >
-            Step 1: Entity & Eligibility
-          </h2>
-
-          <FormInput label="Entity Name *" error={errors.entityName}>
+    <ApplicationShell
+      title="Entity and eligibility screening"
+      description="Capture the legal and operating details TANSEED needs for an initial fit check. Required fields are validated before the portal moves to financial review."
+      currentStep={1}
+      aside={
+        <div className="space-y-5">
+          <div className="rounded-[24px] bg-white p-5 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--primary-700)]/10 text-[var(--primary-700)]">
+                <Building2 size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">What is checked here</p>
+                <p className="text-sm text-slate-600">Entity type, Tamil Nadu fit, promoter ownership, and startup registrations.</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3 rounded-[24px] border border-[var(--line)] bg-white/75 p-5">
+            {[
+              ['Tamil Nadu presence', 'Primary preference for TN-based startups.'],
+              ['Indian ownership', 'Minimum 51% promoter ownership.'],
+              ['Recognitions', 'TANSIM and DPIIT identifiers should be ready.'],
+            ].map(([title, copy]) => (
+              <div key={title} className="flex items-start gap-3">
+                <BadgeCheck size={18} className="mt-0.5 text-[var(--success-600)]" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{title}</p>
+                  <p className="text-sm leading-6 text-slate-600">{copy}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-8">
+        <div className="grid gap-6 md:grid-cols-2">
+          <Field label="Entity Name" htmlFor="entityName" error={errors.entityName}>
             <input
+              id="entityName"
               type="text"
               value={form.entityName}
-              placeholder="e.g. Acme Technologies Pvt Ltd"
+              placeholder="Acme Technologies Pvt Ltd"
               onChange={(e) => setForm({ ...form, entityName: e.target.value })}
-              style={errors.entityName ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.entityName)}
+              className={errors.entityName ? errorInputClassName : inputClassName}
             />
-          </FormInput>
+          </Field>
 
-          <FormInput label="Registration Type *" error={errors.registrationType}>
+          <Field label="Registration Type" htmlFor="registrationType" error={errors.registrationType}>
             <select
+              id="registrationType"
               value={form.registrationType}
               onChange={(e) => setForm({ ...form, registrationType: e.target.value })}
-              style={errors.registrationType ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.registrationType)}
+              className={errors.registrationType ? errorInputClassName : inputClassName}
             >
-              <option value="">Select type…</option>
+              <option value="">Select entity type</option>
               <option>Private Limited</option>
               <option>LLP</option>
               <option>Partnership</option>
             </select>
-          </FormInput>
+          </Field>
 
-          <FormInput label="CIN (optional)">
+          <Field label="CIN" htmlFor="cin" hint="Optional">
             <input
+              id="cin"
               type="text"
               value={form.cin}
-              placeholder="e.g. U72900TN2020PTC123456"
+              placeholder="U72900TN2020PTC123456"
               onChange={(e) => setForm({ ...form, cin: e.target.value })}
-              style={inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, false)}
+              className={inputClassName}
             />
-          </FormInput>
+          </Field>
 
-          <FormInput label="Location *" error={errors.location}>
+          <Field label="Location" htmlFor="location" error={errors.location}>
             <select
+              id="location"
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
-              style={errors.location ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.location)}
+              className={errors.location ? errorInputClassName : inputClassName}
             >
-              <option value="">Select location…</option>
+              <option value="">Choose registered state</option>
               <option>Tamil Nadu</option>
               <option>Other</option>
             </select>
-            {form.location === 'Other' && (
-              <div
-                className="flex items-center gap-2 mt-3 px-4 py-3 rounded-2xl text-sm"
-                style={{ background: '#FFF8EC', color: '#92570F' }}
-              >
-                <AlertTriangle size={15} />
-                <span>TANSEED is primarily for Tamil Nadu-based startups.</span>
-              </div>
-            )}
-          </FormInput>
+          </Field>
+        </div>
 
-          <FormInput label="Indian Ownership (%) *" error={errors.indianOwnership}>
+        {form.location === 'Other' ? (
+          <div className="flex items-start gap-3 rounded-2xl border border-[var(--warning-600)]/15 bg-[var(--warning-100)]/55 px-4 py-4 text-sm text-amber-900">
+            <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-[var(--warning-600)]" />
+            <div>
+              <p className="font-semibold">Tamil Nadu preference warning</p>
+              <p className="mt-1 leading-6">
+                TANSEED primarily supports Tamil Nadu startups. Continue if your registered entity is elsewhere but the operating footprint is still relevant.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Field label="Indian Ownership (%)" htmlFor="indianOwnership" error={errors.indianOwnership}>
             <input
+              id="indianOwnership"
               type="number"
               min={0}
               max={100}
               value={form.indianOwnership}
               onChange={(e) => setForm({ ...form, indianOwnership: Number(e.target.value) })}
-              style={errors.indianOwnership ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.indianOwnership)}
+              className={errors.indianOwnership ? errorInputClassName : inputClassName}
             />
-          </FormInput>
+          </Field>
 
-          <FormInput label="TANSIM ID *" error={errors.tansimId}>
+          <Field label="Employees" htmlFor="employees" error={errors.employees}>
             <input
+              id="employees"
+              type="number"
+              min={1}
+              value={form.employees}
+              onChange={(e) => setForm({ ...form, employees: Number(e.target.value) })}
+              className={errors.employees ? errorInputClassName : inputClassName}
+            />
+          </Field>
+
+          <Field label="TANSIM ID" htmlFor="tansimId" error={errors.tansimId}>
+            <input
+              id="tansimId"
               type="text"
               value={form.tansimId}
-              placeholder="Your TANSIM registration ID"
+              placeholder="StartupTN or TANSIM registration ID"
               onChange={(e) => setForm({ ...form, tansimId: e.target.value })}
-              style={errors.tansimId ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.tansimId)}
+              className={errors.tansimId ? errorInputClassName : inputClassName}
             />
-          </FormInput>
+          </Field>
 
-          <FormInput label="DPIIT ID *" error={errors.dpiitId}>
+          <Field label="DPIIT ID" htmlFor="dpiitId" error={errors.dpiitId}>
             <input
+              id="dpiitId"
               type="text"
               value={form.dpiitId}
-              placeholder="Your DPIIT recognition number"
+              placeholder="DPIIT recognition number"
               onChange={(e) => setForm({ ...form, dpiitId: e.target.value })}
-              style={errors.dpiitId ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.dpiitId)}
+              className={errors.dpiitId ? errorInputClassName : inputClassName}
             />
-          </FormInput>
+          </Field>
+        </div>
 
-          <FormInput label="Employees *" error={errors.employees}>
-            <input
-              type="number"
-              value={form.employees}
-              placeholder="Number of employees"
-              onChange={(e) => setForm({ ...form, employees: Number(e.target.value) })}
-              style={errors.employees ? inputError : inputBase}
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.employees)}
-            />
-          </FormInput>
+        <Field
+          label="Startup Description"
+          htmlFor="description"
+          hint="Minimum 20 characters"
+          error={errors.description}
+        >
+          <textarea
+            id="description"
+            rows={5}
+            value={form.description}
+            placeholder="Describe the innovation, customer problem, and why your solution matters."
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className={errors.description ? `${errorInputClassName} resize-y` : `${inputClassName} resize-y`}
+          />
+        </Field>
 
-          <FormInput label="Description *" error={errors.description}>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              style={{
-                ...(errors.description ? inputError : inputBase),
-                resize: 'vertical',
-              }}
-              rows={3}
-              placeholder="Describe your innovation..."
-              onFocus={focusStyle}
-              onBlur={(e) => blurStyle(e, !!errors.description)}
-            />
-          </FormInput>
-
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={handleNext}
-              className="inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold text-white rounded-2xl transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                background: 'linear-gradient(135deg, #4338CA 0%, #3730A3 100%)',
-                boxShadow: '0 4px 20px rgba(67,56,202,0.3)',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Next: Financials →
-            </button>
+        <div className="rounded-[24px] border border-[var(--line)] bg-[var(--surface-muted)] p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--primary-700)] text-white">
+              <ShieldCheck size={20} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-900">Review guidance</p>
+              <p className="text-sm leading-6 text-slate-600">
+                Use the same entity details that appear on the incorporation and startup recognition records to reduce clarification loops during review.
+              </p>
+            </div>
+            <MapPin size={18} className="ml-auto hidden text-slate-400 md:block" />
           </div>
         </div>
-    </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={handleNext}
+            className="inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#1E3A8A,#325EC7)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(30,58,138,0.22)] transition hover:-translate-y-0.5"
+          >
+            Continue to financials
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </ApplicationShell>
   );
 }

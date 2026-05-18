@@ -5,7 +5,7 @@ import Hero from '../components/Hero'
 describe('Hero', () => {
   it('renders the main headline', () => {
     render(<Hero onStart={() => {}} />)
-    expect(screen.getByText('Fast-Track Your')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /fast-track your tanseed application/i })).toBeInTheDocument()
   })
 
   it('renders the CTA button', () => {
@@ -20,8 +20,8 @@ describe('Hero', () => {
     expect(onStart).toHaveBeenCalledTimes(1)
   })
 
-  it('renders Learn More button', () => {
+  it('renders the status check link', () => {
     render(<Hero onStart={() => {}} />)
-    expect(screen.getByText('Learn More')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /check existing status/i })).toBeInTheDocument()
   })
 })

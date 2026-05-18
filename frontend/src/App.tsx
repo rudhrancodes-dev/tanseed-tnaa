@@ -7,6 +7,7 @@ import Step3Documents from './components/Step3Documents';
 import EligibilityDashboard from './components/EligibilityDashboard';
 import ApplicationDraft from './components/ApplicationDraft';
 import Footer from './components/Footer';
+import { useDraftPayment } from './hooks/useDraftPayment';
 
 function StepLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,13 +21,14 @@ function StepLayout({ children }: { children: React.ReactNode }) {
 
 function AppRouter() {
   const { view, setView } = useApplication();
+  const draftPayment = useDraftPayment();
 
   switch (view) {
     case 'step1': return <StepLayout><Step1EntityEligibility /></StepLayout>;
     case 'step2': return <StepLayout><Step2Financials /></StepLayout>;
     case 'step3': return <StepLayout><Step3Documents /></StepLayout>;
-    case 'results': return <StepLayout><EligibilityDashboard /></StepLayout>;
-    case 'draft': return <StepLayout><ApplicationDraft /></StepLayout>;
+    case 'results': return <StepLayout><EligibilityDashboard draftPayment={draftPayment} /></StepLayout>;
+    case 'draft': return <StepLayout><ApplicationDraft draftPayment={draftPayment} /></StepLayout>;
     default: return <LandingPage onStartApplication={() => setView('step1')} />;
   }
 }
